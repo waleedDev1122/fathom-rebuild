@@ -191,10 +191,11 @@ loading skeletons for `/`, `/meetings/[id]`, `/share/[slug]`
 `SearchBar` bug where stale/blank results showed while a new query
 debounced.
 
-**Phase 8 — P1 stretch, only if time remains**
-Settings stub page (auto-record/share rule builder, default template, bot
-naming — the settings that visibly affect defaults from Phase 0-6). Turn the
-search bar into a persistent "Ask Fathom" panel.
+**Phase 8 — P1 stretch**
+Settings page (auto-record/share rule builder, default template, bot
+naming — the settings that visibly affect defaults from Phase 0-6),
+persisted for real via a new singleton `Settings` row. Turn the search bar
+into a persistent "Ask Fathom" panel, scoped by a "My Calls" dropdown.
 **Exit criteria (only if attempted):** each added piece manually verified
 working on a running instance before being called done; `npm run build`
 passes.
