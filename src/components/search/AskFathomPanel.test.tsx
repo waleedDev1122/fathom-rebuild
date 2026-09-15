@@ -1,0 +1,125 @@
+// @vitest-environment jsdom
+import { describe, expect, it, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { AskFathomPanel } from "./AskFathomPanel";
+
+const fetchMock = vi.fn();
+
+const meetings = [
+  { id: "m1", title: "Team Sync" },
+  { id: "m2", title: "Quarterly Planning" },
+];
+
+beforeEach(() => {
+  fetchMock.mockReset();
+  fetchMock.mockResolvedValue({
+    json: async () => ({
+      results: [
+        {
+          meetingId: "m1",
+          title: "Team Sync",
+          snippets: [
+            { type: "transcript", text: "the billing migration plan", segmentId: "seg-9" },
+            { type: "summary", text: "billing migration summary" },
+          ],
+        },
+      ],
+    }),
+  });
+  vi.stubGlobal("fetch", fetchMock);
+});
+
+async function openPanel() {
+  const user = userEvent.setup();
+  render(<AskFathomPanel meetings={meetings} />);
+  await user.click(screen.getByRole("button", { name: "Ask Fathom" }));
+  return user;
+}
+
+describe("AskFathomPanel", () => {
+  it("is closed by default and opens on toggle", async () => {
+    render(<AskFathomPanel meetings={meetings} />);
+    expect(screen.queryByRole("searchbox", { name: "Search meetings" })).not.toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Ask Fathom" }));
+
+    expect(screen.getByRole("searchbox", { name: "Search meetings" })).toBeInTheDocument();
+  });
+
+  it("links a transcript snippet to the meeting with a highlight + query param", async () => {
+    const user = await openPanel();
+
+    await user.type(
+      screen.getByRole("searchbox", { name: "Search meetings" }),
+      "billing migration"
+    );
+
+    const snippetLink = await screen.findByRole(
+      "link",
+      { name: "the billing migration plan" },
+      { timeout: 2000 }
+    );
+    expect(snippetLink).toHaveAttribute(
+      "href",
+      "/meetings/m1?q=billing+migration&highlight=seg-9"
+    );
+  });
+
+  it("links a summary snippet (no segmentId) to the meeting without a highlight param", async () => {
+    const user = await openPanel();
+
+    await user.type(
+      screen.getByRole("searchbox", { name: "Search meetings" }),
+      "billing migration"
+    );
+
+    const snippetLink = await screen.findByRole(
+      "link",
+      { name: "billing migration summary" },
+      { timeout: 2000 }
+    );
+    expect(snippetLink).toHaveAttribute("href", "/meetings/m1?q=billing+migration");
+  });
+
+  it("shows 'Searching…' instead of stale results while a new query is debouncing", async () => {
+    const user = await openPanel();
+
+    const input = screen.getByRole("searchbox", { name: "Search meetings" });
+    await user.type(input, "billing");
+    await screen.findByRole("link", { name: "Team Sync" }, { timeout: 2000 });
+
+    await user.type(input, " extra");
+
+    expect(screen.queryByRole("link", { name: "Team Sync" })).not.toBeInTheDocument();
+    expect(screen.getByText("Searching…")).toBeInTheDocument();
+  });
+
+  it("includes the selected meetingId scope in the search request", async () => {
+    const user = await openPanel();
+
+    await user.selectOptions(screen.getByLabelText("My Calls"), "m2");
+    await user.type(screen.getByRole("searchbox", { name: "Search meetings" }), "billing");
+
+    await screen.findByRole("link", { name: "Team Sync" }, { timeout: 2000 });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("meetingId=m2"),
+      expect.anything()
+    );
+  });
+
+  it("omits the meetingId param when the scope is left at 'All meetings'", async () => {
+    const user = await openPanel();
+
+    await user.type(screen.getByRole("searchbox", { name: "Search meetings" }), "billing");
+
+    await screen.findByRole("link", { name: "Team Sync" }, { timeout: 2000 });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.not.stringContaining("meetingId"),
+      expect.anything()
+    );
+  });
+});

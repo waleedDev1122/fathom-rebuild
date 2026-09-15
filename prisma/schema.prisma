@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SummaryTemplate {
+  ENHANCED
+  BRIEF
+}
+
+enum ShareAccess {
+  ANYONE_WITH_LINK
+  MEETING_PARTICIPANTS_ONLY
+}
+
+model Meeting {
+  id             String    @id @default(cuid())
+  title          String
+  startedAt      DateTime
+  durationSec    Int
+  attendeeCount  Int
+  shareSlug      String    @unique
+
+  participants   Participant[]
+  segments       TranscriptSegment[]
+  summaries      Summary[]
+  actionItems    ActionItem[]
+  highlights     Highlight[]
+
+  createdAt      DateTime  @default(now())
+}
+
+model Participant {
+  id         String   @id @default(cuid())
+  meetingId  String
+  meeting    Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  name       String
+
+  segments   TranscriptSegment[]
+
+  @@index([meetingId])
+}
+
+model TranscriptSegment {
+  id          String      @id @default(cuid())
+  meetingId   String
+  meeting     Meeting     @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  speakerId   String
+  speaker     Participant @relation(fields: [speakerId], references: [id], onDelete: Cascade)
+  startSec    Int
+  endSec      Int
+  text        String
+  order       Int
+
+  @@index([meetingId, order])
+}
+
+model Summary {
+  id           String          @id @default(cuid())
+  meetingId    String
+  meeting      Meeting         @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  template     SummaryTemplate
+  content      String
+  generatedAt  DateTime        @default(now())
+
+  @@unique([meetingId, template])
+}
+
+model ActionItem {
+  id         String   @id @default(cuid())
+  meetingId  String
+  meeting    Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  text       String
+  owner      String?
+  order      Int
+
+  @@index([meetingId, order])
+}
+
+model Highlight {
+  id         String   @id @default(cuid())
+  meetingId  String
+  meeting    Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  atSec      Int
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([meetingId])
+}
+
+model Settings {
+  id                 String          @id @default("singleton")
+  autoRecordEnabled  Boolean         @default(true)
+  autoShareEnabled   Boolean         @default(true)
+  botName            String          @default("Fathom Notetaker")
+  defaultTemplate    SummaryTemplate @default(ENHANCED)
+  defaultShareAccess ShareAccess     @default(ANYONE_WITH_LINK)
+  updatedAt          DateTime        @updatedAt
+}

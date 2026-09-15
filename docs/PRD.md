@@ -1,6 +1,8 @@
 # PRD — Fathom Rebuild
 
-Status: Draft, for sign-off before implementation planning begins.
+Status: Signed off; implementation is underway per `docs/IMPLEMENTATION-PLAN.md`
+(see that doc for current phase status). Scope below reflects what was agreed
+before build started and still holds — it isn't updated per-phase.
 Source material: `docs/ASSIGNMENT-BRIEF.md` (product walkthrough notes + official
 8x assignment brief). Read that first — this document turns it into scoped,
 buildable requirements.
@@ -128,9 +130,10 @@ Mirrors the brief's own pre-send checklist:
 
 ## 9. Open questions for the implementation plan
 
-These are deliberately left unresolved here and belong in the implementation
-plan (per `CLAUDE.md`'s meta-requirement, to be presented for sign-off before
-build starts):
+All resolved in `docs/IMPLEMENTATION-PLAN.md` (Next.js/Prisma/OpenAI/Vercel,
+no real auth, the data model, and Vitest-based TDD scoped to the
+summarization pipeline, search, and share-link paths). Left here for
+historical context on what was deliberately punted from the PRD:
 
 - Tech stack (framework, hosting/deploy target, LLM API wiring for the
   summarization step).
