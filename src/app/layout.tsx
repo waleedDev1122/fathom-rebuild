@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { listMeetingSummaries } from "@/lib/meetings";
+import { AppChrome } from "@/components/layout/AppChrome";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,13 +19,17 @@ export const metadata: Metadata = {
   description: "AI meeting notetaker — take-home rebuild",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const meetings = await listMeetingSummaries();
+
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <AppChrome meetings={meetings}>{children}</AppChrome>
+      </body>
     </html>
   );
 }

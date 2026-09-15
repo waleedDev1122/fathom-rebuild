@@ -86,6 +86,13 @@ async function main() {
       console.log(`  ${template} summary generated (${result.actionItems.length} action items)`);
     }
   }
+
+  await prisma.settings.upsert({
+    where: { id: "singleton" },
+    update: {},
+    create: { id: "singleton" },
+  });
+  console.log("Seeded default settings");
 }
 
 main()

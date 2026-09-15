@@ -1,12 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const findUniqueMock = vi.fn();
+const findManyMock = vi.fn();
 
 vi.mock("@/lib/db", () => ({
-  prisma: { meeting: { findUnique: (...args: unknown[]) => findUniqueMock(...args) } },
+  prisma: {
+    meeting: {
+      findUnique: (...args: unknown[]) => findUniqueMock(...args),
+      findMany: (...args: unknown[]) => findManyMock(...args),
+    },
+  },
 }));
 
-const { getMeetingById, getMeetingByShareSlug } = await import("./meetings");
+const { getMeetingById, getMeetingByShareSlug, listMeetingSummaries } = await import(
+  "./meetings"
+);
 
 function rawMeeting(overrides: Record<string, unknown> = {}) {
   return {
@@ -36,6 +44,7 @@ function rawMeeting(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   findUniqueMock.mockReset();
+  findManyMock.mockReset();
 });
 
 describe("getMeetingById", () => {
@@ -105,5 +114,25 @@ describe("getMeetingByShareSlug", () => {
 
     expect(first).toMatchObject({ id: "m1", title: "Meeting One", shareSlug: "slug-one" });
     expect(second).toMatchObject({ id: "m2", title: "Meeting Two", shareSlug: "slug-two" });
+  });
+});
+
+describe("listMeetingSummaries", () => {
+  it("selects only id/title, ordered most-recent first", async () => {
+    findManyMock.mockResolvedValueOnce([
+      { id: "m2", title: "Meeting Two" },
+      { id: "m1", title: "Meeting One" },
+    ]);
+
+    const summaries = await listMeetingSummaries();
+
+    expect(findManyMock).toHaveBeenCalledWith({
+      select: { id: true, title: true },
+      orderBy: { startedAt: "desc" },
+    });
+    expect(summaries).toEqual([
+      { id: "m2", title: "Meeting Two" },
+      { id: "m1", title: "Meeting One" },
+    ]);
   });
 });

@@ -122,4 +122,32 @@ describe("searchMeetings", () => {
     const results = await searchMeetings("some completely unrelated phrase xyz");
     expect(results).toEqual([]);
   });
+
+  it("scopes both queries to a meetingId when one is given", async () => {
+    await searchMeetings("billing migration", "m1");
+
+    expect(findManySegmentsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { text: { contains: "billing migration", mode: "insensitive" }, meetingId: "m1" },
+      })
+    );
+    expect(findManySummariesMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          content: { contains: "billing migration", mode: "insensitive" },
+          meetingId: "m1",
+        },
+      })
+    );
+  });
+
+  it("does not add a meetingId filter when none is given", async () => {
+    await searchMeetings("billing migration");
+
+    expect(findManySegmentsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { text: { contains: "billing migration", mode: "insensitive" } },
+      })
+    );
+  });
 });

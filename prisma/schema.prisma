@@ -15,6 +15,11 @@ enum SummaryTemplate {
   BRIEF
 }
 
+enum ShareAccess {
+  ANYONE_WITH_LINK
+  MEETING_PARTICIPANTS_ONLY
+}
+
 model Meeting {
   id             String    @id @default(cuid())
   title          String
@@ -88,4 +93,14 @@ model Highlight {
   createdAt  DateTime @default(now())
 
   @@index([meetingId])
+}
+
+model Settings {
+  id                 String          @id @default("singleton")
+  autoRecordEnabled  Boolean         @default(true)
+  autoShareEnabled   Boolean         @default(true)
+  botName            String          @default("Fathom Notetaker")
+  defaultTemplate    SummaryTemplate @default(ENHANCED)
+  defaultShareAccess ShareAccess     @default(ANYONE_WITH_LINK)
+  updatedAt          DateTime        @updatedAt
 }

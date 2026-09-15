@@ -1,13 +1,20 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { formatDate, formatDuration } from "@/lib/format";
-import { SearchBar } from "@/components/search/SearchBar";
+import { getSettings } from "@/lib/settings";
+
+// Settings are user-editable at runtime (see /settings); this page must
+// reflect the current row on every request, not a build-time snapshot.
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const meetings = await prisma.meeting.findMany({
-    orderBy: { startedAt: "desc" },
-    include: { participants: true },
-  });
+  const [meetings, settings] = await Promise.all([
+    prisma.meeting.findMany({
+      orderBy: { startedAt: "desc" },
+      include: { participants: true },
+    }),
+    getSettings(),
+  ]);
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6">
@@ -18,9 +25,14 @@ export default async function Home() {
         <p className="text-sm text-foreground-muted">
           {meetings.length} recorded meeting{meetings.length === 1 ? "" : "s"}
         </p>
+        <p className="text-sm text-foreground-muted">
+          Auto-record: {settings.autoRecordEnabled ? "All meetings" : "Off"} · Auto-share:{" "}
+          {settings.autoShareEnabled ? "Summary + recording" : "Off"} ·{" "}
+          <Link href="/settings" className="link">
+            Settings
+          </Link>
+        </p>
       </div>
-
-      <SearchBar />
 
       {meetings.length === 0 ? (
         <div className="empty-state">

@@ -57,3 +57,12 @@ export async function getMeetingByShareSlug(shareSlug: string): Promise<MeetingD
   const meeting = await prisma.meeting.findUnique({ where: { shareSlug }, include });
   return meeting ? mapMeeting(meeting) : null;
 }
+
+export type MeetingSummary = { id: string; title: string };
+
+export async function listMeetingSummaries(): Promise<MeetingSummary[]> {
+  return prisma.meeting.findMany({
+    select: { id: true, title: true },
+    orderBy: { startedAt: "desc" },
+  });
+}

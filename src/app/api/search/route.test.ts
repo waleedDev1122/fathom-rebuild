@@ -20,7 +20,7 @@ describe("GET /api/search", () => {
 
     const res = await GET(new Request("http://localhost/api/search?q=billing"));
 
-    expect(searchMeetingsMock).toHaveBeenCalledWith("billing");
+    expect(searchMeetingsMock).toHaveBeenCalledWith("billing", undefined);
     const json = await res.json();
     expect(json.results).toEqual([{ meetingId: "m1", title: "Team Sync", snippets: [] }]);
   });
@@ -30,6 +30,14 @@ describe("GET /api/search", () => {
 
     await GET(new Request("http://localhost/api/search"));
 
-    expect(searchMeetingsMock).toHaveBeenCalledWith("");
+    expect(searchMeetingsMock).toHaveBeenCalledWith("", undefined);
+  });
+
+  it("passes a meetingId param through to scope the search", async () => {
+    searchMeetingsMock.mockResolvedValueOnce([]);
+
+    await GET(new Request("http://localhost/api/search?q=billing&meetingId=m1"));
+
+    expect(searchMeetingsMock).toHaveBeenCalledWith("billing", "m1");
   });
 });

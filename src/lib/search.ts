@@ -26,18 +26,24 @@ export function excerpt(text: string, query: string, radius = EXCERPT_RADIUS): s
   return `${prefix}${text.slice(start, end).trim()}${suffix}`;
 }
 
-export async function searchMeetings(rawQuery: string): Promise<SearchResult[]> {
+export async function searchMeetings(rawQuery: string, meetingId?: string): Promise<SearchResult[]> {
   const query = rawQuery.trim();
   if (!query) return [];
 
   const [segments, summaries] = await Promise.all([
     prisma.transcriptSegment.findMany({
-      where: { text: { contains: query, mode: "insensitive" } },
+      where: {
+        text: { contains: query, mode: "insensitive" },
+        ...(meetingId ? { meetingId } : {}),
+      },
       include: { meeting: true },
       take: 50,
     }),
     prisma.summary.findMany({
-      where: { content: { contains: query, mode: "insensitive" } },
+      where: {
+        content: { contains: query, mode: "insensitive" },
+        ...(meetingId ? { meetingId } : {}),
+      },
       include: { meeting: true },
       take: 50,
     }),

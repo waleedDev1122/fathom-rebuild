@@ -9,10 +9,9 @@ follows TDD.
 
 ## Current status
 
-Phases 0–5 are built, tested, and pushed to `main`/Vercel. Phase 6 (share
-links) is next and has not been started. See each phase below for its
-individual status and exit-criteria results; `CLAUDE.md` carries a short
-summary for quick orientation.
+Phases 0–8 are built, tested, and pushed to `main`/Vercel. See each phase
+below for its individual status and exit-criteria results; `CLAUDE.md`
+carries a short summary for quick orientation.
 
 Stack decisions, confirmed with the user:
 - **Next.js + TypeScript** (App Router, Tailwind), deployed to **Vercel** —
@@ -169,7 +168,11 @@ one meeting's share link never exposes another meeting's data.
 **Exit criteria:** all three share-route tests pass; manually opened a share
 link in a fresh incognito window (no cookies) on the deployed Vercel URL and
 confirmed it renders; `npm run build` passes.
-**Status:** Not started.
+**Status:** ✅ Done. `getMeetingByShareSlug` (`src/lib/meetings.ts`),
+`/share/[slug]` route reusing a new `MeetingDetailView` extracted from the
+meeting detail page, `readOnly` mode on `TranscriptPane` (hides
+highlight-creation, still shows existing highlights), "Copy share link"
+button on meeting pages.
 
 **Phase 7 — Polish pass**
 Empty-state audit (should be none anywhere), responsive check, loading/error
@@ -182,7 +185,11 @@ pre-send checklist.
 **Exit criteria:** the full golden-path walkthrough completes on the deployed
 Vercel URL with no empty states, console errors, or layout breaks found;
 `npm run build` passes.
-**Status:** Not started.
+**Status:** ✅ Done. Empty states for `/`, `TemplateSwitcher`, `TranscriptPane`;
+loading skeletons for `/`, `/meetings/[id]`, `/share/[slug]`
+(`MeetingDetailSkeleton`); root `error.tsx` themed fallback; fixed a
+`SearchBar` bug where stale/blank results showed while a new query
+debounced.
 
 **Phase 8 — P1 stretch, only if time remains**
 Settings stub page (auto-record/share rule builder, default template, bot
@@ -191,7 +198,28 @@ search bar into a persistent "Ask Fathom" panel.
 **Exit criteria (only if attempted):** each added piece manually verified
 working on a running instance before being called done; `npm run build`
 passes.
-**Status:** Not started.
+**Status:** ✅ Done. New singleton `Settings` model (Postgres, real
+persistence via `getSettings`/`updateSettings` in `src/lib/settings.ts`,
+`GET`/`PATCH /api/settings`) backs a `/settings` page
+(`SettingsForm.tsx`) covering auto-record, auto-share, bot naming, default
+summary template, and default share-link access, saved via a single "Save
+changes" action. The home page header now shows a one-line meeting-
+preferences summary reading those settings. `SearchBar` was replaced by
+`AskFathomPanel.tsx`, a persistent slide-in panel (carrying over its
+debounce/stale-query-guard logic) with a "My Calls" scope dropdown that
+narrows search to one meeting via a new optional `meetingId` param on
+`searchMeetings`/`GET /api/search`. Both features share a new global header
+(`SiteHeader.tsx`, mounted from `src/app/layout.tsx`), deliberately hidden
+on `/share/[slug]` via `AppChrome.tsx`'s `usePathname()` check so the
+Phase 6 zero-chrome, read-only share contract is unchanged. `/` and
+`/settings` are marked `force-dynamic` (a real bug caught during this
+phase: they'd otherwise be statically prerendered at build time, so a
+settings change would never show up until the next deploy). Manually
+verified in Chrome: panel open/scope/query state survives client-side
+navigation between `/` and a meeting page; settings persist across a full
+page reload; `/share/[slug]` renders with no header/panel chrome; no
+console errors on any page. 90/90 tests pass, lint clean, `npm run build`
+clean.
 
 ## Testing strategy (TDD)
 
