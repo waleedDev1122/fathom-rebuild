@@ -2,6 +2,7 @@ import "dotenv/config";
 import { randomBytes } from "node:crypto";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { summarizeMeeting } from "../src/lib/ai/summarize";
 import { fixtures } from "./fixtures";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
@@ -56,6 +57,34 @@ async function main() {
     console.log(
       `Seeded "${fixture.title}" (${fixture.segments.length} segments, ${fixture.participants.length} participants) — /share/${meeting.shareSlug}`
     );
+
+    // ActionItem is meeting-level (no per-template field), so it's persisted
+    // once from the ENHANCED call; BRIEF only contributes its summary text.
+    for (const template of ["ENHANCED", "BRIEF"] as const) {
+      const result = await summarizeMeeting({
+        title: fixture.title,
+        participants: fixture.participants,
+        segments: fixture.segments,
+        template,
+      });
+
+      await prisma.summary.create({
+        data: { meetingId: meeting.id, template, content: result.summary },
+      });
+
+      if (template === "ENHANCED") {
+        await prisma.actionItem.createMany({
+          data: result.actionItems.map((item, order) => ({
+            meetingId: meeting.id,
+            text: item.text,
+            owner: item.owner,
+            order,
+          })),
+        });
+      }
+
+      console.log(`  ${template} summary generated (${result.actionItems.length} action items)`);
+    }
   }
 }
 
