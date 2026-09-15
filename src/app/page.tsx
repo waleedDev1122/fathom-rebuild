@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { formatDate, formatDuration } from "@/lib/format";
+import { SearchBar } from "@/components/search/SearchBar";
 
 export default async function Home() {
   const meetings = await prisma.meeting.findMany({
@@ -18,6 +19,8 @@ export default async function Home() {
           {meetings.length} recorded meeting{meetings.length === 1 ? "" : "s"}
         </p>
       </div>
+
+      <SearchBar />
 
       <ul className="flex flex-col gap-3">
         {meetings.map((meeting) => (
