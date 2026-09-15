@@ -3,10 +3,16 @@
 ## Context
 
 `docs/PRD.md` scoped what to build and what to skip; this plan turns that into
-a concrete build order for a greenfield repo (no application code exists yet
-— only the capture-hook infra and docs). Per `CLAUDE.md`'s meta-requirement,
-this plan gets sign-off before any product code is written, and the build
+a concrete build order for a greenfield repo. Per `CLAUDE.md`'s meta-requirement,
+this plan got sign-off before any product code was written, and the build
 follows TDD.
+
+## Current status
+
+Phases 0–5 are built, tested, and pushed to `main`/Vercel. Phase 6 (share
+links) is next and has not been started. See each phase below for its
+individual status and exit-criteria results; `CLAUDE.md` carries a short
+summary for quick orientation.
 
 Stack decisions, confirmed with the user:
 - **Next.js + TypeScript** (App Router, Tailwind), deployed to **Vercel** —
@@ -67,6 +73,7 @@ consistent look rather than improvising per-page. Continue committing
 `.agent-logs/` interleaved as normal (hooks already handle capture).
 **Exit criteria:** placeholder page loads at the real Vercel URL in an
 incognito window; `npm run build` passes; repo is pushed and public.
+**Status:** ✅ Done.
 
 **Phase 1 — Data model + seed data**
 Prisma schema above, migration. Author three realistic transcript fixtures
@@ -81,6 +88,11 @@ DB; never an empty state.
 **Exit criteria:** `prisma migrate dev` and `prisma/seed.ts` both run clean
 against the real DB; `/` on a running dev server lists all three seeded
 meetings with no empty state; `npm run build` passes.
+**Status:** ✅ Done. Fixtures: `prisma/fixtures/one-on-one.ts`,
+`team-sync.ts`, `quarterly-planning.ts` (8 participants, 113 segments,
+~60min — the flagship fixture), with deliberate cross-meeting continuity
+(shared topics like "billing migration", "timezone bug") to make Phase 5
+search meaningful.
 
 **Phase 2 — Real AI summarization pipeline (highest-signal piece)**
 `lib/ai/summarize.ts`: given transcript segments + a template mode, calls
@@ -94,6 +106,9 @@ before baking results into seed data.
 **Exit criteria:** all summarization unit tests pass (prompt construction,
 parsing, malformed-JSON handling); the one manual real-API run has been
 eyeballed for quality; `npm run build` passes.
+**Status:** ✅ Done. Model: `gpt-4o-mini` (chosen over unverified/possibly
+hallucinated model names surfaced during research). `src/lib/ai/summarize.ts`
+exports `summarizeMeeting`, `parseSummaryResponse`, `SummarizationError`.
 
 **Phase 3 — Meeting detail view**
 `/meetings/[id]`: speaker-labeled, scrollable transcript pane (must hold up
@@ -105,6 +120,8 @@ switcher.
 hour-long fixture on a running dev server and confirmed the transcript pane
 scrolls smoothly with no layout breakage; template switch visibly swaps
 content; `npm run build` passes.
+**Status:** ✅ Done. `src/lib/transcript.ts` (`groupSegmentsBySpeaker`) +
+`src/components/meeting/{TranscriptPane,TemplateSwitcher}.tsx`.
 
 **Phase 4 — Highlight a moment**
 Click a transcript segment → `POST /api/meetings/[id]/highlights` → persisted
@@ -113,6 +130,8 @@ route persists and returns highlights correctly scoped per meeting.
 **Exit criteria:** route test passes; manually created a highlight on a
 running dev server, reloaded the page, and confirmed the marker persisted;
 `npm run build` passes.
+**Status:** ✅ Done. `POST /api/meetings/[id]/highlights`, star-toggle in
+`TranscriptPane` calling `router.refresh()`.
 
 **Phase 5 — Cross-meeting search**
 Simple version of "Ask Fathom": `GET /api/search?q=` does an ILIKE search
@@ -121,6 +140,25 @@ snippets; a search bar surfaces results. Test against known queries on the
 seeded fixtures.
 **Exit criteria:** known-query tests pass; manually ran a query in the UI on
 a running dev server and confirmed the expected meetings/snippets appear;
+`npm run build` passes.
+**Status:** ✅ Done. `src/lib/search.ts` (`searchMeetings`, `excerpt`),
+`GET /api/search`, `src/components/search/SearchBar.tsx`.
+
+**Phase 5 addendum — search → transcript UX refinements**
+Built after Phase 5 landed, in response to direct feedback that finding a
+result should also *take you to the moment*: each global search snippet now
+carries the matched `TranscriptSegment.id`; clicking it navigates to
+`/meetings/[id]?q=<query>&highlight=<segmentId>`, which scrolls to and
+briefly flashes that exact segment. The meeting detail view also gained its
+own in-transcript search (prefilled from the global query on arrival) that
+highlights every occurrence of the term throughout the transcript via
+`src/lib/highlight.ts` (`highlightMatches`, `buildMatchRefs`), with
+next/previous navigation (buttons + Enter/Shift+Enter) to step through all
+matches, wrapping at both ends.
+**Status:** ✅ Done. Tests pass (`highlight.test.ts`,
+`TranscriptPane.test.tsx`, `SearchBar.test.tsx`, `search.test.ts`); manually
+verified in Chrome (global search → segment jump/flash; in-transcript search
+highlighting and next/prev stepping with wraparound on the 8-person fixture);
 `npm run build` passes.
 
 **Phase 6 — Share link (signed-out access)**
@@ -131,6 +169,7 @@ one meeting's share link never exposes another meeting's data.
 **Exit criteria:** all three share-route tests pass; manually opened a share
 link in a fresh incognito window (no cookies) on the deployed Vercel URL and
 confirmed it renders; `npm run build` passes.
+**Status:** Not started.
 
 **Phase 7 — Polish pass**
 Empty-state audit (should be none anywhere), responsive check, loading/error
@@ -143,6 +182,7 @@ pre-send checklist.
 **Exit criteria:** the full golden-path walkthrough completes on the deployed
 Vercel URL with no empty states, console errors, or layout breaks found;
 `npm run build` passes.
+**Status:** Not started.
 
 **Phase 8 — P1 stretch, only if time remains**
 Settings stub page (auto-record/share rule builder, default template, bot
@@ -151,6 +191,7 @@ search bar into a persistent "Ask Fathom" panel.
 **Exit criteria (only if attempted):** each added piece manually verified
 working on a running instance before being called done; `npm run build`
 passes.
+**Status:** Not started.
 
 ## Testing strategy (TDD)
 
