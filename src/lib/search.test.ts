@@ -75,6 +75,21 @@ describe("searchMeetings", () => {
     expect(results.map((r) => r.meetingId).sort()).toEqual(["m-1on1", "m-q3"]);
   });
 
+  it("includes the segment id on transcript snippets so callers can jump to it", async () => {
+    findManySegmentsMock.mockResolvedValueOnce([
+      {
+        id: "seg-42",
+        meetingId: "m1",
+        meeting: { title: "Team Sync" },
+        text: "the timezone bug in the scheduler",
+      },
+    ]);
+
+    const results = await searchMeetings("timezone bug");
+
+    expect(results[0].snippets[0]).toMatchObject({ type: "transcript", segmentId: "seg-42" });
+  });
+
   it("merges transcript and summary matches for the same meeting into one result", async () => {
     findManySegmentsMock.mockResolvedValueOnce([
       { meetingId: "m1", meeting: { title: "Team Sync" }, text: "the timezone bug in the scheduler" },

@@ -91,4 +91,16 @@ body {
     @apply flex flex-col items-center justify-center gap-2 rounded-default border
       border-dashed border-border p-10 text-center text-foreground-muted;
   }
+  .highlight-flash {
+    animation: highlight-flash 2.5s ease-out;
+  }
+}
+
+@keyframes highlight-flash {
+  0% {
+    background-color: color-mix(in srgb, var(--brand) 35%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
 }

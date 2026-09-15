@@ -3,8 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-type SearchSnippet = { type: "transcript" | "summary"; text: string };
+type SearchSnippet = { type: "transcript" | "summary"; text: string; segmentId?: string };
 type SearchResult = { meetingId: string; title: string; snippets: SearchSnippet[] };
+
+function meetingHref(meetingId: string, query: string, snippet?: SearchSnippet) {
+  const params = new URLSearchParams({ q: query });
+  if (snippet?.segmentId) params.set("highlight", snippet.segmentId);
+  return `/meetings/${meetingId}?${params.toString()}`;
+}
 
 export function SearchBar() {
   const [query, setQuery] = useState("");
@@ -58,18 +64,23 @@ export function SearchBar() {
           )}
           {!loading &&
             results?.map((result) => (
-              <Link
-                key={result.meetingId}
-                href={`/meetings/${result.meetingId}`}
-                className="flex flex-col gap-1 rounded-default p-2 transition-colors hover:bg-surface-muted"
-              >
-                <span className="text-sm font-medium text-foreground">{result.title}</span>
+              <div key={result.meetingId} className="flex flex-col gap-1 rounded-default p-2">
+                <Link
+                  href={meetingHref(result.meetingId, trimmedQuery)}
+                  className="text-sm font-medium text-foreground hover:text-brand"
+                >
+                  {result.title}
+                </Link>
                 {result.snippets.slice(0, 2).map((s, i) => (
-                  <span key={i} className="text-xs text-foreground-muted">
+                  <Link
+                    key={i}
+                    href={meetingHref(result.meetingId, trimmedQuery, s)}
+                    className="-mx-1 rounded-sm px-1 text-xs text-foreground-muted transition-colors hover:bg-surface-muted hover:text-foreground"
+                  >
                     {s.text}
-                  </span>
+                  </Link>
                 ))}
-              </Link>
+              </div>
             ))}
         </div>
       )}

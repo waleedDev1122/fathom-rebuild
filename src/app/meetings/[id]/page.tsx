@@ -7,10 +7,13 @@ import { TemplateSwitcher } from "@/components/meeting/TemplateSwitcher";
 
 export default async function MeetingDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ highlight?: string; q?: string }>;
 }) {
   const { id } = await params;
+  const { highlight, q } = await searchParams;
 
   const meeting = await prisma.meeting.findUnique({
     where: { id },
@@ -55,6 +58,8 @@ export default async function MeetingDetailPage({
           meetingId={meeting.id}
           segments={segments}
           highlights={meeting.highlights.map((h) => ({ id: h.id, atSec: h.atSec }))}
+          initialSearchQuery={q}
+          jumpToSegmentId={highlight}
         />
         <TemplateSwitcher
           summaries={meeting.summaries.map((s) => ({

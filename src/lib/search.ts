@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 export type SearchSnippet = {
   type: "transcript" | "summary";
   text: string;
+  segmentId?: string;
 };
 
 export type SearchResult = {
@@ -60,6 +61,7 @@ export async function searchMeetings(rawQuery: string): Promise<SearchResult[]> 
     addSnippet(segment.meetingId, segment.meeting.title, {
       type: "transcript",
       text: excerpt(segment.text, query),
+      segmentId: segment.id,
     });
   }
 
