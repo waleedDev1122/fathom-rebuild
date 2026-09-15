@@ -75,4 +75,18 @@ describe("SearchBar", () => {
     const titleLink = await screen.findByRole("link", { name: "Team Sync" }, { timeout: 2000 });
     expect(titleLink).toHaveAttribute("href", "/meetings/m1?q=billing+migration");
   });
+
+  it("shows 'Searching…' instead of stale results while a new query is debouncing", async () => {
+    const user = userEvent.setup();
+    render(<SearchBar />);
+
+    const input = screen.getByRole("searchbox", { name: "Search meetings" });
+    await user.type(input, "billing");
+    await screen.findByRole("link", { name: "Team Sync" }, { timeout: 2000 });
+
+    await user.type(input, " extra");
+
+    expect(screen.queryByRole("link", { name: "Team Sync" })).not.toBeInTheDocument();
+    expect(screen.getByText("Searching…")).toBeInTheDocument();
+  });
 });

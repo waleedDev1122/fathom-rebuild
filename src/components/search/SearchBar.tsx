@@ -15,6 +15,7 @@ function meetingHref(meetingId: string, query: string, snippet?: SearchSnippet) 
 export function SearchBar() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[] | null>(null);
+  const [resultsQuery, setResultsQuery] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -28,9 +29,15 @@ export function SearchBar() {
         signal: controller.signal,
       })
         .then((res) => res.json())
-        .then((data: { results: SearchResult[] }) => setResults(data.results))
+        .then((data: { results: SearchResult[] }) => {
+          setResults(data.results);
+          setResultsQuery(trimmed);
+        })
         .catch((err: unknown) => {
-          if (err instanceof Error && err.name !== "AbortError") setResults([]);
+          if (err instanceof Error && err.name !== "AbortError") {
+            setResults([]);
+            setResultsQuery(trimmed);
+          }
         })
         .finally(() => setLoading(false));
     }, 300);
@@ -42,6 +49,10 @@ export function SearchBar() {
   }, [query]);
 
   const trimmedQuery = query.trim();
+  // Only trust `results` once it was computed for the current query — otherwise a
+  // fast retype would flash stale results from the previous query while debouncing.
+  const showResults = !loading && results !== null && resultsQuery === trimmedQuery;
+  const showSearching = loading || results === null || resultsQuery !== trimmedQuery;
 
   return (
     <div className="flex flex-col gap-2">
@@ -56,14 +67,14 @@ export function SearchBar() {
 
       {trimmedQuery && (
         <div className="card flex flex-col gap-3">
-          {loading && <p className="text-sm text-foreground-muted">Searching…</p>}
-          {!loading && results?.length === 0 && (
+          {showSearching && <p className="text-sm text-foreground-muted">Searching…</p>}
+          {showResults && results.length === 0 && (
             <p className="text-sm text-foreground-muted">
               No results for &quot;{trimmedQuery}&quot;.
             </p>
           )}
-          {!loading &&
-            results?.map((result) => (
+          {showResults &&
+            results.map((result) => (
               <div key={result.meetingId} className="flex flex-col gap-1 rounded-default p-2">
                 <Link
                   href={meetingHref(result.meetingId, trimmedQuery)}

@@ -36,6 +36,11 @@ beforeEach(() => {
 });
 
 describe("TranscriptPane", () => {
+  it("shows an empty state instead of a blank pane when there are no segments", () => {
+    render(<TranscriptPane meetingId="m1" segments={[]} highlights={[]} />);
+    expect(screen.getByText("No transcript available")).toBeInTheDocument();
+  });
+
   it("renders each speaker's segments", () => {
     render(<TranscriptPane meetingId="m1" segments={segments} highlights={[]} />);
     expect(screen.getByText("Jordan")).toBeInTheDocument();

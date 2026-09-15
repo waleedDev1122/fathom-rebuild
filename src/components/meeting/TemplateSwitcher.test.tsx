@@ -58,4 +58,10 @@ describe("TemplateSwitcher", () => {
     render(<TemplateSwitcher summaries={summaries} actionItems={[]} />);
     expect(screen.queryByText("Action items")).not.toBeInTheDocument();
   });
+
+  it("shows an empty state instead of a blank tablist when there are no summaries", () => {
+    render(<TemplateSwitcher summaries={[]} actionItems={[]} />);
+    expect(screen.getByText("No summary yet")).toBeInTheDocument();
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+  });
 });

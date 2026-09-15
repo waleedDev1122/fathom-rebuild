@@ -22,27 +22,36 @@ export default async function Home() {
 
       <SearchBar />
 
-      <ul className="flex flex-col gap-3">
-        {meetings.map((meeting) => (
-          <li key={meeting.id}>
-            <Link
-              href={`/meetings/${meeting.id}`}
-              className="card flex flex-col gap-2 transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <h2 className="font-medium text-foreground">{meeting.title}</h2>
-                <span className="shrink-0 rounded-default bg-surface-muted px-2 py-1 text-xs font-medium text-foreground-muted">
-                  {formatDuration(meeting.durationSec)}
-                </span>
-              </div>
-              <p className="text-sm text-foreground-muted">
-                {formatDate(meeting.startedAt)} ·{" "}
-                {meeting.participants.map((p) => p.name).join(", ")}
-              </p>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {meetings.length === 0 ? (
+        <div className="empty-state">
+          <p className="text-sm font-medium text-foreground">No meetings yet</p>
+          <p className="text-sm text-foreground-muted">
+            Recorded meetings will show up here once they&apos;re added.
+          </p>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {meetings.map((meeting) => (
+            <li key={meeting.id}>
+              <Link
+                href={`/meetings/${meeting.id}`}
+                className="card flex flex-col gap-2 transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <h2 className="font-medium text-foreground">{meeting.title}</h2>
+                  <span className="shrink-0 rounded-default bg-surface-muted px-2 py-1 text-xs font-medium text-foreground-muted">
+                    {formatDuration(meeting.durationSec)}
+                  </span>
+                </div>
+                <p className="text-sm text-foreground-muted">
+                  {formatDate(meeting.startedAt)} ·{" "}
+                  {meeting.participants.map((p) => p.name).join(", ")}
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

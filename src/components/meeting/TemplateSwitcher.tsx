@@ -80,6 +80,17 @@ export function TemplateSwitcher({ summaries, actionItems }: TemplateSwitcherPro
       "ENHANCED"
   );
 
+  if (summaries.length === 0) {
+    return (
+      <div className="empty-state">
+        <p className="text-sm font-medium text-foreground">No summary yet</p>
+        <p className="text-sm text-foreground-muted">
+          A summary hasn&apos;t been generated for this meeting.
+        </p>
+      </div>
+    );
+  }
+
   const active = summaries.find((s) => s.template === selected);
 
   return (

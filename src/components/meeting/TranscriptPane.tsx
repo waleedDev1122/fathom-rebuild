@@ -182,6 +182,14 @@ export function TranscriptPane({
       </div>
 
       <div className="card max-h-[70vh] overflow-y-auto">
+        {groups.length === 0 ? (
+          <div className="empty-state">
+            <p className="text-sm font-medium text-foreground">No transcript available</p>
+            <p className="text-sm text-foreground-muted">
+              This meeting doesn&apos;t have a transcript yet.
+            </p>
+          </div>
+        ) : (
         <ol className="flex flex-col gap-4">
           {(() => {
             let matchCursor = 0;
@@ -298,6 +306,7 @@ export function TranscriptPane({
             ));
           })()}
         </ol>
+        )}
       </div>
     </div>
   );
