@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+/*
+ * Phase 0 theme baseline: a small, deliberate set of semantic tokens plus a
+ * few reusable component-state classes, so every later phase builds on one
+ * consistent look instead of improvising per-page. Not a design system —
+ * just enough restraint to read as considered.
+ */
+
+:root {
+  --background: #fafafa;
+  --surface: #ffffff;
+  --surface-muted: #f4f4f5;
+  --border: #e4e4e7;
+  --foreground: #18181b;
+  --foreground-muted: #71717a;
+
+  --brand: #4f46e5;
+  --brand-hover: #4338ca;
+  --brand-foreground: #ffffff;
+
+  --danger: #dc2626;
+  --success: #16a34a;
+
+  --radius: 0.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0b;
+    --surface: #18181b;
+    --surface-muted: #27272a;
+    --border: #3f3f46;
+    --foreground: #f4f4f5;
+    --foreground-muted: #a1a1aa;
+
+    --brand: #818cf8;
+    --brand-hover: #a5b4fc;
+    --brand-foreground: #0a0a0b;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --radius-default: var(--radius);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-default px-4 py-2
+      text-sm font-medium transition-colors
+      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2
+      disabled:pointer-events-none disabled:opacity-50;
+  }
+  /* combine with .btn, e.g. className="btn btn-primary" */
+  .btn-primary {
+    @apply bg-brand text-brand-foreground hover:bg-brand-hover;
+  }
+  .btn-secondary {
+    @apply border border-border bg-surface text-foreground hover:bg-surface-muted;
+  }
+  .card {
+    @apply rounded-default border border-border bg-surface p-4 shadow-sm;
+  }
+  .link {
+    @apply text-brand underline-offset-4 hover:underline focus-visible:outline-none
+      focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 rounded-sm;
+  }
+  .skeleton {
+    @apply animate-pulse rounded-default bg-surface-muted;
+  }
+  .empty-state {
+    @apply flex flex-col items-center justify-center gap-2 rounded-default border
+      border-dashed border-border p-10 text-center text-foreground-muted;
+  }
+}
