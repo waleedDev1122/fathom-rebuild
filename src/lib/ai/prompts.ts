@@ -1,3 +1,5 @@
+import { formatClockTime } from "@/lib/format";
+
 export type SummaryTemplateKind = "ENHANCED" | "BRIEF";
 
 export type TranscriptSegmentInput = {
@@ -6,15 +8,9 @@ export type TranscriptSegmentInput = {
   text: string;
 };
 
-function formatTimestamp(sec: number): string {
-  const m = Math.floor(sec / 60);
-  const s = Math.floor(sec % 60);
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
 function formatTranscript(segments: TranscriptSegmentInput[]): string {
   return segments
-    .map((s) => `[${formatTimestamp(s.startSec)}] ${s.speaker}: ${s.text}`)
+    .map((s) => `[${formatClockTime(s.startSec)}] ${s.speaker}: ${s.text}`)
     .join("\n");
 }
 
