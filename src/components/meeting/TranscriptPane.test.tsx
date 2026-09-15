@@ -154,6 +154,28 @@ describe("TranscriptPane", () => {
     expect(screen.getByRole("button", { name: "Previous match" })).toBeDisabled();
   });
 
+  it("hides the highlight-creation button in read-only mode", () => {
+    render(
+      <TranscriptPane meetingId="m1" segments={segments} highlights={[]} readOnly />
+    );
+    expect(
+      screen.queryByRole("button", { name: "Highlight this moment" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("still shows already-created highlights (non-interactively) in read-only mode", () => {
+    render(
+      <TranscriptPane
+        meetingId="m1"
+        segments={segments}
+        highlights={[{ id: "h1", atSec: 0 }]}
+        readOnly
+      />
+    );
+    expect(screen.getByLabelText("Highlighted")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Highlighted" })).not.toBeInTheDocument();
+  });
+
   it("starts the active match on the jumped-to segment, not always the first match", () => {
     render(
       <TranscriptPane

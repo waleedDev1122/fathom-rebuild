@@ -16,6 +16,8 @@ type TranscriptPaneProps = {
   initialSearchQuery?: string;
   /** Scrolls to and flashes this segment on mount, e.g. when arriving from global search. */
   jumpToSegmentId?: string;
+  /** Hides the highlight-creation control, e.g. on the public read-only share view. */
+  readOnly?: boolean;
 };
 
 export function TranscriptPane({
@@ -24,6 +26,7 @@ export function TranscriptPane({
   highlights,
   initialSearchQuery,
   jumpToSegmentId,
+  readOnly = false,
 }: TranscriptPaneProps) {
   const router = useRouter();
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -207,38 +210,62 @@ export function TranscriptPane({
                           (isFlashed ? " highlight-flash" : "")
                         }
                       >
-                        <button
-                          type="button"
-                          onClick={() => handleHighlight(segment)}
-                          disabled={isHighlighted || pendingId === segment.id}
-                          aria-label={
-                            isHighlighted
-                              ? "Highlighted"
-                              : "Highlight this moment"
-                          }
-                          aria-pressed={isHighlighted}
-                          className={
-                            "mt-0.5 shrink-0 disabled:cursor-default " +
-                            (isHighlighted
-                              ? "text-brand"
-                              : "text-foreground-muted opacity-0 transition-opacity hover:text-brand focus-visible:opacity-100 group-hover:opacity-100")
-                          }
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 20 20"
-                            fill={isHighlighted ? "currentColor" : "none"}
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            aria-hidden
+                        {readOnly ? (
+                          isHighlighted && (
+                            <span
+                              aria-label="Highlighted"
+                              className="mt-0.5 shrink-0 text-brand"
+                            >
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                aria-hidden
+                              >
+                                <path
+                                  d="M10 2l2.39 4.84 5.34.78-3.87 3.77.91 5.32L10 14.9l-4.77 2.51.91-5.32L2.27 7.62l5.34-.78L10 2z"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </span>
+                          )
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleHighlight(segment)}
+                            disabled={isHighlighted || pendingId === segment.id}
+                            aria-label={
+                              isHighlighted
+                                ? "Highlighted"
+                                : "Highlight this moment"
+                            }
+                            aria-pressed={isHighlighted}
+                            className={
+                              "mt-0.5 shrink-0 disabled:cursor-default " +
+                              (isHighlighted
+                                ? "text-brand"
+                                : "text-foreground-muted opacity-0 transition-opacity hover:text-brand focus-visible:opacity-100 group-hover:opacity-100")
+                            }
                           >
-                            <path
-                              d="M10 2l2.39 4.84 5.34.78-3.87 3.77.91 5.32L10 14.9l-4.77 2.51.91-5.32L2.27 7.62l5.34-.78L10 2z"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </button>
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 20 20"
+                              fill={isHighlighted ? "currentColor" : "none"}
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              aria-hidden
+                            >
+                              <path
+                                d="M10 2l2.39 4.84 5.34.78-3.87 3.77.91 5.32L10 14.9l-4.77 2.51.91-5.32L2.27 7.62l5.34-.78L10 2z"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+                        )}
                         <p className="text-sm text-foreground-muted">
                           {highlightMatches(segment.text, query).map(
                             (part, j) => {
