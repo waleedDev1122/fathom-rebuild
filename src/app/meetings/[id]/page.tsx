@@ -19,6 +19,7 @@ export default async function MeetingDetailPage({
       segments: { orderBy: { order: "asc" }, include: { speaker: true } },
       summaries: true,
       actionItems: { orderBy: { order: "asc" } },
+      highlights: { orderBy: { atSec: "asc" } },
     },
   });
 
@@ -50,7 +51,11 @@ export default async function MeetingDetailPage({
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <TranscriptPane segments={segments} />
+        <TranscriptPane
+          meetingId={meeting.id}
+          segments={segments}
+          highlights={meeting.highlights.map((h) => ({ id: h.id, atSec: h.atSec }))}
+        />
         <TemplateSwitcher
           summaries={meeting.summaries.map((s) => ({
             template: s.template,
